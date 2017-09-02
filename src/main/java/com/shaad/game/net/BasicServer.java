@@ -1,8 +1,7 @@
 package com.shaad.game.net;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,9 +10,13 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+@Slf4j
 public class BasicServer implements AutoCloseable {
-    private static final Logger log = LoggerFactory.getLogger(BasicServer.class);
+    private static final ExecutorService executors =
+            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 8);
 
     private ServerSocket serverSocket;
 
@@ -30,16 +33,22 @@ public class BasicServer implements AutoCloseable {
     public void run() {
         try {
             for (; ; ) {
-                try (Socket clientSocket = serverSocket.accept();
-                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+                Socket clientSocket = serverSocket.accept();
+                executors.submit(() -> {
+                    try {
+                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-                    Request request = parseRequest(clientSocket);
+                        Request request = parseRequest(clientSocket);
 
-                    System.out.println(request);
+                        System.out.println(request);
 
-                    out.println("hello client");
-                    out.close();
-                }
+                        System.out.println("handled");
+                        out.println("hello client");
+                        out.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             }
         } catch (Exception e) {
             log.error("Shit happened", e);
