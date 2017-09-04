@@ -10,9 +10,10 @@ repositories {
 }
 
 dependencies {
+    compile group: 'com.google.guava', name: 'guava', version: '23.0'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.0'
+    compile group: 'com.fasterxml', name: 'jackson-xml-databind', version: '0.6.2'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-    //compile group: 'org.rapidoid', name: 'rapidoid-http-fast', version: '5.4.4'
 
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.16.18'
 

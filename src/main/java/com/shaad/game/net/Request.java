@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Data
 public class Request {
-    private final String method;
+    private final HttpMethod method;
     private final String path;
     private final List<String> headers;
     private final Map<String, String> params;

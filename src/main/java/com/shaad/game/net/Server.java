@@ -1,6 +1,10 @@
 package com.shaad.game.net;
 
 
+import com.shaad.game.net.controller.ControllerHolder;
+import com.shaad.game.net.decoder.CommonResponseDecoder;
+import com.shaad.game.net.decoder.ResponseDecoder;
+import com.shaad.game.net.response.Response;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -14,15 +18,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
-public class BasicServer implements AutoCloseable {
+public class Server implements AutoCloseable {
     private static final ExecutorService executors =
             Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 8);
 
+    private final ResponseDecoder responseDecoder = new CommonResponseDecoder();
+    private final ControllerHolder controllerHolder;
+
     private ServerSocket serverSocket;
 
-
-    public BasicServer(int port) {
+    public Server(int port, ControllerHolder controllerHolder) {
         try {
+            this.controllerHolder = controllerHolder;
             serverSocket = new ServerSocket(port);
         } catch (Exception e) {
             log.error("Shit happened", e);
@@ -37,16 +44,18 @@ public class BasicServer implements AutoCloseable {
                 executors.submit(() -> {
                     try {
                         PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-
                         Request request = parseRequest(clientSocket);
 
                         System.out.println(request);
 
-                        System.out.println("handled");
-                        out.println("hello client");
+                        Response response = controllerHolder.handleRequest(request);
+
+                        String decode = responseDecoder.decode(response);
+                        out.println(decode);
                         out.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } catch (Exception e) {
+                        log.error("Shit happened", e);
+                        throw new RuntimeException(e);
                     }
                 });
             }
@@ -96,7 +105,7 @@ public class BasicServer implements AutoCloseable {
             body = String.copyValueOf(buffer);
         }
 
-        return new Request(method, path, headers, params, body);
+        return new Request(HttpMethod.valueOf(method), path, headers, params, body);
     }
 
     public void close() {
