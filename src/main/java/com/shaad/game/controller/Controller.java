@@ -1,4 +1,4 @@
-package com.shaad.game.net.controller;
+package com.shaad.game.controller;
 
 import com.shaad.game.net.HttpMethod;
 import com.shaad.game.net.Request;

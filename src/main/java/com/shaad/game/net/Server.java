@@ -1,8 +1,7 @@
 package com.shaad.game.net;
 
 
-import com.shaad.game.net.controller.ControllerHolder;
-import com.shaad.game.net.decoder.CommonResponseDecoder;
+import com.shaad.game.controller.ControllerHolder;
 import com.shaad.game.net.decoder.ResponseDecoder;
 import com.shaad.game.net.response.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +21,13 @@ public class Server implements AutoCloseable {
     private static final ExecutorService executors =
             Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 8);
 
-    private final ResponseDecoder responseDecoder = new CommonResponseDecoder();
+    private final ResponseDecoder responseDecoder;
     private final ControllerHolder controllerHolder;
 
     private ServerSocket serverSocket;
 
-    public Server(int port, ControllerHolder controllerHolder) {
+    public Server(int port, ResponseDecoder responseDecoder, ControllerHolder controllerHolder) {
+        this.responseDecoder = responseDecoder;
         try {
             this.controllerHolder = controllerHolder;
             serverSocket = new ServerSocket(port);
@@ -43,15 +43,14 @@ public class Server implements AutoCloseable {
                 Socket clientSocket = serverSocket.accept();
                 executors.submit(() -> {
                     try {
-                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                         Request request = parseRequest(clientSocket);
 
-                        System.out.println(request);
+                        log.info("Handling response: {}", request.toString());
 
                         Response response = controllerHolder.handleRequest(request);
 
-                        String decode = responseDecoder.decode(response);
-                        out.println(decode);
+                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                        out.println(responseDecoder.decode(response));
                         out.close();
                     } catch (Exception e) {
                         log.error("Shit happened", e);

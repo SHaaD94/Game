@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,11 @@ public abstract class HtmlResponse implements Response {
     public HtmlResponse(HttpStatus httpStatus, Map<String, String> substituteParams) {
         this.status = httpStatus;
         this.substituteParams = substituteParams;
+    }
+
+    public HtmlResponse(HttpStatus httpStatus) {
+        this.status = httpStatus;
+        this.substituteParams = new HashMap<>();
     }
 
     @Override

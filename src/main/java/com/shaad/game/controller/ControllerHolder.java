@@ -1,24 +1,25 @@
-package com.shaad.game.net.controller;
+package com.shaad.game.controller;
 
 import com.shaad.game.net.HttpMethod;
 import com.shaad.game.net.Request;
-import com.shaad.game.net.response.NotFoundResponse;
+import com.shaad.game.net.response.errors.InternalErrorResponse;
+import com.shaad.game.net.response.errors.NotFoundResponse;
 import com.shaad.game.net.response.Response;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
 
 public class ControllerHolder {
-    private final Map<String, Map<HttpMethod, Controller>> controllers = new HashMap<>();
+    private final Map<String, Map<HttpMethod, Controller>> path2controllers = new HashMap<>();
 
-    public ControllerHolder(List<Controller> controllersList) {
-        controllersList.forEach(x -> {
+    public ControllerHolder(Controller... controller) {
+        Arrays.stream(controller).forEach(x -> {
             Map<HttpMethod, Controller> method2Controllers =
-                    controllers.computeIfAbsent(x.getPath(), s -> new EnumMap<>(HttpMethod.class));
+                    path2controllers.computeIfAbsent(x.getPath(), s -> new EnumMap<>(HttpMethod.class));
 
             checkState(!method2Controllers.containsKey(x.getMethod()),
                     "Controller for path {} and method {} already exists", x.getPath(), x.getMethod().toString());
@@ -28,7 +29,7 @@ public class ControllerHolder {
     }
 
     public Response handleRequest(Request request) {
-        Map<HttpMethod, Controller> potentialControllers = controllers.get(request.getPath());
+        Map<HttpMethod, Controller> potentialControllers = path2controllers.get(request.getPath());
         if (potentialControllers == null) {
             return new NotFoundResponse();
         }
@@ -38,6 +39,10 @@ public class ControllerHolder {
             return new NotFoundResponse();
         }
 
-        return controller.handle(request);
+        try {
+            return controller.handle(request);
+        } catch (Exception e) {
+            return new InternalErrorResponse(e.getMessage());
+        }
     }
 }
