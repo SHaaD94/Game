@@ -12,11 +12,15 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public void createUser(String login, String password) {
-        userRepository.saveUser(login, hash(password));
+    public Long createUser(String login, String password) {
+        return userRepository.saveUser(login, hash(password));
     }
 
     public User findUser(String login, String password) {
         return userRepository.getUserByLoginAndPassword(login, hash(password));
+    }
+
+    public User findUser(Long id) {
+        return userRepository.getUserById(id);
     }
 }

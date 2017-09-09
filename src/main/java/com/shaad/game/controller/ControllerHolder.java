@@ -2,9 +2,10 @@ package com.shaad.game.controller;
 
 import com.shaad.game.net.HttpMethod;
 import com.shaad.game.net.Request;
+import com.shaad.game.net.response.Response;
 import com.shaad.game.net.response.errors.InternalErrorResponse;
 import com.shaad.game.net.response.errors.NotFoundResponse;
-import com.shaad.game.net.response.Response;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
 
+@Slf4j
 public class ControllerHolder {
     private final Map<String, Map<HttpMethod, Controller>> path2controllers = new HashMap<>();
 
@@ -42,6 +44,7 @@ public class ControllerHolder {
         try {
             return controller.handle(request);
         } catch (Exception e) {
+            log.error("Something went wrong", e);
             return new InternalErrorResponse(e.getMessage());
         }
     }

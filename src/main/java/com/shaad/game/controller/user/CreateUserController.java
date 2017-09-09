@@ -3,9 +3,10 @@ package com.shaad.game.controller.user;
 import com.google.common.base.Strings;
 import com.shaad.game.controller.ControllerBase;
 import com.shaad.game.net.Request;
+import com.shaad.game.net.SessionManager;
+import com.shaad.game.net.response.RedirectResponse;
 import com.shaad.game.net.response.Response;
 import com.shaad.game.net.response.user.SignupResponse;
-import com.shaad.game.net.response.user.UserOfficeResponse;
 import com.shaad.game.service.UserService;
 
 import static com.shaad.game.net.HttpMethod.POST;
@@ -14,10 +15,12 @@ import static com.shaad.game.util.UrlDecodeUtil.decode;
 
 public class CreateUserController extends ControllerBase {
     private final UserService userService;
+    private final SessionManager sessionManager;
 
-    public CreateUserController(UserService userService) {
+    public CreateUserController(UserService userService, SessionManager sessionManager) {
         super("/signup", POST);
         this.userService = userService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -47,8 +50,10 @@ public class CreateUserController extends ControllerBase {
             return new SignupResponse("Login and password should not be empty");
         }
 
-        userService.createUser(login, password);
+        Long userId = userService.createUser(login, password);
 
-        return new UserOfficeResponse(login);
+        RedirectResponse redirectResponse = new RedirectResponse("/office");
+        redirectResponse.setCookie("SessionId", sessionManager.createSession(userId).toString());
+        return redirectResponse;
     }
 }

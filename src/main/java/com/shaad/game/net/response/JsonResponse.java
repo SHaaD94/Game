@@ -4,6 +4,7 @@ import com.shaad.game.net.HttpStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -14,7 +15,6 @@ public class JsonResponse implements Response {
 
     @Override
     public List<String> getHeaders() {
-        //FIXME refact this
-        return null;
+        return new ArrayList<>();
     }
 }

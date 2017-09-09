@@ -12,11 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @Slf4j
 @Getter
 public abstract class HtmlResponse implements Response {
     private final HttpStatus status;
     private final Map<String, String> substituteParams;
+    protected final List<String> headers = new ArrayList<>();
 
     public HtmlResponse(HttpStatus httpStatus, Map<String, String> substituteParams) {
         this.status = httpStatus;
@@ -29,17 +32,18 @@ public abstract class HtmlResponse implements Response {
     }
 
     @Override
-    public List<String> getHeaders() {
-        return new ArrayList<>();
-    }
-
-    @Override
     public String getBody() {
         String page = getPageTemplate();
         for (Map.Entry<String, String> entry : substituteParams.entrySet()) {
             page = page.replace("%%" + entry.getKey() + "%%", entry.getValue());
         }
         return page;
+    }
+
+    public void setCookie(String name, String value) {
+        checkNotNull(name, "Cookie name should not be null");
+        checkNotNull(value, "Cookie value should not be null");
+        this.headers.add(String.format("Set-Cookie: %s=%s", name, value));
     }
 
     protected abstract String getPageTemplate();
