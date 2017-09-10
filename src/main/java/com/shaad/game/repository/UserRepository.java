@@ -29,7 +29,7 @@ public class UserRepository extends Repository {
 
     public User getUserByLoginAndPassword(String login, String passwordHash) {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT id from users where login = ? and password = ?")) {
+             PreparedStatement statement = connection.prepareStatement("SELECT id from users where login = ? and password_hash = ?")) {
 
             statement.setString(1, login);
             statement.setString(2, passwordHash);
@@ -45,7 +45,19 @@ public class UserRepository extends Repository {
         }
     }
 
-    //fixme handle duplicate login exception
+    public boolean userExists(String login) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT id from users where login = ?")) {
+
+            statement.setString(1, login);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Long saveUser(String login, String passwordHash) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement("INSERT INTO users (login,password_hash) values(?,?)",

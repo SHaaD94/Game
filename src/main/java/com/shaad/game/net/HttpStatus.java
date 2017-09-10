@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 public enum HttpStatus {
     OK(200),
+    REDIRECT(302),
     BAD_REQUEST(400),
     NON_AUTHORIZED(401),
     NOT_FOUND(404),

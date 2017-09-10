@@ -2,8 +2,9 @@ package com.shaad.game;
 
 import com.shaad.game.controller.ControllerHolder;
 import com.shaad.game.controller.MainScreenController;
-import com.shaad.game.controller.user.CreateUserController;
-import com.shaad.game.controller.user.SignupController;
+import com.shaad.game.controller.user.AuthorizationController;
+import com.shaad.game.controller.user.LoginController;
+import com.shaad.game.controller.user.LogoutController;
 import com.shaad.game.controller.user.UserOfficeController;
 import com.shaad.game.net.Server;
 import com.shaad.game.net.SessionManager;
@@ -24,8 +25,9 @@ public class App {
                 new ControllerHolder(
                         new MainScreenController(),
 
-                        new SignupController(),
-                        new CreateUserController(userService, sessionManager),
+                        new LoginController(sessionManager),
+                        new AuthorizationController(userService, sessionManager),
+                        new LogoutController(sessionManager),
 
                         new UserOfficeController(userService, sessionManager)
 

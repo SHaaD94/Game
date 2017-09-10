@@ -4,6 +4,7 @@ CREATE TABLE `users` (
         `password_hash` CHAR(200) NOT NULL,
         PRIMARY KEY(`id`),
         UNIQUE (`login`),
+        INDEX (`login`),
         INDEX user_find_index (`login`,`password_hash`)
 );
 

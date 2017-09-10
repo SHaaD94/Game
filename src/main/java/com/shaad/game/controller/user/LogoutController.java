@@ -6,19 +6,15 @@ import com.shaad.game.net.Request;
 import com.shaad.game.net.SessionManager;
 import com.shaad.game.net.response.RedirectResponse;
 import com.shaad.game.net.response.Response;
-import com.shaad.game.net.response.user.UserOfficeResponse;
-import com.shaad.game.service.UserService;
 
 import java.util.UUID;
 
-public class UserOfficeController extends ControllerBase {
+public class LogoutController extends ControllerBase {
     private final SessionManager sessionManager;
-    private final UserService userService;
 
-    public UserOfficeController(UserService userService, SessionManager sessionManager) {
-        super("/office", HttpMethod.GET);
+    public LogoutController(SessionManager sessionManager) {
+        super("/logout", HttpMethod.GET);
         this.sessionManager = sessionManager;
-        this.userService = userService;
     }
 
     @Override
@@ -27,10 +23,8 @@ public class UserOfficeController extends ControllerBase {
         if (uuid == null) {
             return new RedirectResponse("/login");
         }
-        Long userId = sessionManager.getUserByToken(uuid);
-        if (userId == null) {
-            return new RedirectResponse("/login");
-        }
-        return new UserOfficeResponse(userService.findUser(userId));
+
+        sessionManager.invalidateSession(uuid);
+        return new RedirectResponse("/login");
     }
 }
