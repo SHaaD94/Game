@@ -3,8 +3,54 @@
     <title>Best game ever</title>
 </head>
 <body>
-    <h1>Welcome to the game</h1>
-    <h2>Duel with id %%duel_id%% with status %%status%%</h2>
-    <h3>%%login1%% versus %%login2%%</h3>
+<h2>Duel with id %%duel_id%% with status %%status%%</h2>
+
+<div id="duel">
+    <div id="first_fighter">
+        <div>You:</div>
+        <div id="fighter1-login">%%login1%%</div>
+        <div id="fighter1-hp">HP: %%hp1%%</div>
+        <div id="fighter1-damage">Damage: %%damage1%%</div>
+    </div>
+
+    <div id="second_fighter">
+        <div>Opponent:</div>
+        <div id="fighter2-login">%%login2%%</div>
+        <div id="fighter2-hp">HP: %%hp2%%</div>
+        <div id="fighter2-damage">Damage: %%damage2%%</div>
+    </div>
+</div>
+
+<form action="/attackAction" method="post">
+    <button>Attack</button>
+</form>
+
+<p>Duel logs:</p>
+<p>%%logs%%</p>
+
+<style>
+    #first_fighter{
+        float: left;
+        max-width: 200px;
+        margin: 0;
+        padding: 1em;
+    }
+    #second_fighter{
+        margin-left: 210px;
+        padding: 1em;
+        overflow: hidden;
+    }
+
+
+
+
+
+
+
+
+
+
+
+</style>
 </body>
 </html>

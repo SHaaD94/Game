@@ -7,27 +7,31 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Arrays;
 
 public class DuelRepository extends Repository {
-
-    public Duel getNewestByUserId(long userId) {
+    public Duel getLastFinishedDuel(long userId) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
                      "SELECT * FROM duels WHERE first_user_id = ? or second_user_id = ? " +
-                             "AND status='PENDING' OR STATUS = 'IN_PROGRESS'" +
+                             "AND status='FINISHED'" +
                              "ORDER BY create_date DESC limit 1")) {
 
             preparedStatement.setLong(1, userId);
             preparedStatement.setLong(2, userId);
-            preparedStatement.executeQuery();
 
-            try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
-                resultSet.next();
-                long id = resultSet.getLong(resultSet.getString("id"));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                long id = resultSet.getLong("id");
                 long firstUserId = resultSet.getLong("first_user_id");
                 long secondUserId = resultSet.getLong("second_user_id");
                 DuelStatus status = DuelStatus.valueOf(resultSet.getString("status"));
-                return new Duel(id, userId, firstUserId != userId ? firstUserId : secondUserId, status);
+                Duel duel = new Duel(id, userId, firstUserId != userId ? firstUserId : secondUserId, status);
+                Arrays.stream(resultSet.getString("log").split("\n")).forEachOrdered(duel::addLogLine);
+                return duel;
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -67,13 +71,27 @@ public class DuelRepository extends Repository {
         }
     }
 
-    public void updateDuelLogs(long duelId, String logs) {
+    public void updateDuelLogs(Duel duel) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
-                     "UPDATE duels set logs = ? where id = ?")) {
+                     "UPDATE duels set log = ? where id = ?")) {
 
-            preparedStatement.setString(1, logs);
-            preparedStatement.setLong(2, duelId);
+            preparedStatement.setString(1, duel.aggregateLogs());
+            preparedStatement.setLong(2, duel.getId());
+            preparedStatement.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void updateDuel(Duel duel) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "UPDATE duels set status = ?, log = ? where id = ?")) {
+
+            preparedStatement.setString(1, duel.getStatus().toString());
+            preparedStatement.setString(2, duel.aggregateLogs());
+            preparedStatement.setLong(3, duel.getId());
             preparedStatement.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);

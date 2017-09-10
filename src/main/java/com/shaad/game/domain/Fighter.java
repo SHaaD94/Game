@@ -1,11 +1,13 @@
 package com.shaad.game.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class Fighter {
     private final long id;
-    private final int rating;
-    private final int health;
-    private final int damage;
+    private int rating;
+    private int health;
+    private int damage;
 }

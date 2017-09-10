@@ -23,8 +23,9 @@ public class FighterRepository extends Repository {
     public Fighter getUserFighter(Long userId) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
-                     "SELECT * from fighters id, rating, health, damage where user_id=?")) {
+                     "SELECT id, rating, health, damage from fighters where user_id=?")) {
 
+            preparedStatement.setLong(1, userId);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 return resultSet.next() ? new Fighter(
                         resultSet.getLong(1),
@@ -35,5 +36,21 @@ public class FighterRepository extends Repository {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void updateStats(Fighter fighter) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "UPDATE fighters SET rating = ?, health = ?, damage = ? where id=?")) {
+            preparedStatement.setInt(1, fighter.getRating());
+            preparedStatement.setInt(2, fighter.getHealth());
+            preparedStatement.setInt(3, fighter.getDamage());
+            preparedStatement.setLong(4, fighter.getId());
+
+            preparedStatement.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

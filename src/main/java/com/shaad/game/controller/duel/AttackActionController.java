@@ -1,12 +1,14 @@
-package com.shaad.game.controller.user;
+package com.shaad.game.controller.duel;
 
 import com.shaad.game.controller.ControllerBase;
+import com.shaad.game.domain.Duel;
+import com.shaad.game.domain.DuelStatus;
 import com.shaad.game.net.HttpMethod;
 import com.shaad.game.net.Request;
 import com.shaad.game.net.response.RedirectResponse;
 import com.shaad.game.net.response.Response;
-import com.shaad.game.net.response.user.UserOfficeResponse;
 import com.shaad.game.net.session.SessionManager;
+import com.shaad.game.service.DuelService;
 import com.shaad.game.service.FighterService;
 import com.shaad.game.service.UserService;
 
@@ -14,19 +16,17 @@ import java.util.UUID;
 
 import static com.shaad.game.service.Constants.USER_ID;
 
-public class UserOfficeController extends ControllerBase {
+public class AttackActionController extends ControllerBase {
     private final SessionManager sessionManager;
-    private final UserService userService;
-    private final FighterService fighterService;
+    private final DuelService duelService;
 
-    public UserOfficeController(SessionManager sessionManager,
-                                UserService userService,
-                                FighterService fighterService) {
-        super("/office", HttpMethod.GET);
+    public AttackActionController(SessionManager sessionManager,
+                                  DuelService duelService){
+        super("/attackAction", HttpMethod.POST);
         this.sessionManager = sessionManager;
-        this.userService = userService;
-        this.fighterService = fighterService;
+        this.duelService = duelService;
     }
+
 
     @Override
     public Response handle(Request request) {
@@ -39,6 +39,16 @@ public class UserOfficeController extends ControllerBase {
             return new RedirectResponse("/login");
         }
 
-        return new UserOfficeResponse(userService.findUser(userId), fighterService.findFighter(userId));
+        Duel duel = duelService.getDuelByUserId(userId);
+        if (duel == null) {
+            return new RedirectResponse("/office");
+        }
+
+        duel = duelService.handleAttack(userId);
+        if (duel == null || duel.getStatus() == DuelStatus.FINISHED) {
+            return new RedirectResponse("/lastDuel");
+        }
+
+        return new RedirectResponse("/duel");
     }
 }
