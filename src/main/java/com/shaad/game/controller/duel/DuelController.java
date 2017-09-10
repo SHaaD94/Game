@@ -1,27 +1,34 @@
-package com.shaad.game.controller.user;
+package com.shaad.game.controller.duel;
 
 import com.shaad.game.controller.ControllerBase;
+import com.shaad.game.domain.Duel;
 import com.shaad.game.net.HttpMethod;
 import com.shaad.game.net.Request;
 import com.shaad.game.net.response.RedirectResponse;
 import com.shaad.game.net.response.Response;
-import com.shaad.game.net.response.user.UserOfficeResponse;
+import com.shaad.game.net.response.duel.DuelResponse;
 import com.shaad.game.net.session.SessionManager;
+import com.shaad.game.service.DuelService;
 import com.shaad.game.service.UserService;
 
 import java.util.UUID;
 
 import static com.shaad.game.service.Constants.USER_ID;
 
-public class UserOfficeController extends ControllerBase {
+public class DuelController extends ControllerBase {
     private final SessionManager sessionManager;
+    private final DuelService duelService;
     private final UserService userService;
 
-    public UserOfficeController(SessionManager sessionManager, UserService userService) {
-        super("/office", HttpMethod.GET);
+    public DuelController(SessionManager sessionManager,
+                          DuelService duelService,
+                          UserService userService) {
+        super("/duel", HttpMethod.GET);
         this.sessionManager = sessionManager;
+        this.duelService = duelService;
         this.userService = userService;
     }
+
 
     @Override
     public Response handle(Request request) {
@@ -33,6 +40,16 @@ public class UserOfficeController extends ControllerBase {
         if (userId == null) {
             return new RedirectResponse("/login");
         }
-        return new UserOfficeResponse(userService.findUser(userId));
+
+        Duel duel = duelService.getDuelByUserId(userId);
+        if (duel == null) {
+            return new RedirectResponse("/office");
+        }
+
+        return new DuelResponse(duel,
+                userService.findUser(userId),
+                userService.findUser(userId == duel.getFirstUserId()
+                        ? duel.getSecondUserId()
+                        : duel.getFirstUserId()));
     }
 }

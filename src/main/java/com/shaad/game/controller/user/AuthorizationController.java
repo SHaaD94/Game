@@ -4,13 +4,17 @@ import com.google.common.base.Strings;
 import com.shaad.game.controller.ControllerBase;
 import com.shaad.game.exception.WrongUserPasswordException;
 import com.shaad.game.net.Request;
-import com.shaad.game.net.SessionManager;
+import com.shaad.game.net.session.SessionManager;
 import com.shaad.game.net.response.RedirectResponse;
 import com.shaad.game.net.response.Response;
 import com.shaad.game.net.response.user.LoginResponse;
 import com.shaad.game.service.UserService;
 
+import java.util.UUID;
+
 import static com.shaad.game.net.HttpMethod.POST;
+import static com.shaad.game.service.Constants.SESSION_ID;
+import static com.shaad.game.service.Constants.USER_ID;
 import static com.shaad.game.util.UrlDecodeUtil.decode;
 
 
@@ -58,8 +62,10 @@ public class AuthorizationController extends ControllerBase {
             return new LoginResponse(e.getMessage());
         }
 
+        UUID sessionUUID = sessionManager.createSession();
+        sessionManager.setSessionValue(sessionUUID, USER_ID, userId);
         RedirectResponse redirectResponse = new RedirectResponse("/office");
-        redirectResponse.setCookie("SessionId", sessionManager.createSession(userId).toString());
+        redirectResponse.setCookie(SESSION_ID, sessionUUID.toString());
         return redirectResponse;
     }
 }

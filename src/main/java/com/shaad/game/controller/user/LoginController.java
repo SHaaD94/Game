@@ -2,7 +2,7 @@ package com.shaad.game.controller.user;
 
 import com.shaad.game.controller.ControllerBase;
 import com.shaad.game.net.Request;
-import com.shaad.game.net.SessionManager;
+import com.shaad.game.net.session.SessionManager;
 import com.shaad.game.net.response.RedirectResponse;
 import com.shaad.game.net.response.Response;
 import com.shaad.game.net.response.user.LoginResponse;
@@ -10,6 +10,7 @@ import com.shaad.game.net.response.user.LoginResponse;
 import java.util.UUID;
 
 import static com.shaad.game.net.HttpMethod.GET;
+import static com.shaad.game.service.Constants.USER_ID;
 
 
 public class LoginController extends ControllerBase {
@@ -25,7 +26,7 @@ public class LoginController extends ControllerBase {
         UUID uuid = sessionManager.parseSessionId(request);
 
         if (uuid != null) {
-            if (sessionManager.getUserByToken(uuid) != null) {
+            if (sessionManager.getValueFromSession(uuid, USER_ID, Long.class) != null) {
                 return new RedirectResponse("/office");
             }
         }
