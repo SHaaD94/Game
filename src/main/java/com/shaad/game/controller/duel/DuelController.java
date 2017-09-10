@@ -9,7 +9,6 @@ import com.shaad.game.net.response.Response;
 import com.shaad.game.net.response.duel.DuelResponse;
 import com.shaad.game.net.session.SessionManager;
 import com.shaad.game.service.DuelService;
-import com.shaad.game.service.FighterService;
 import com.shaad.game.service.UserService;
 
 import java.util.UUID;
@@ -20,19 +19,15 @@ public class DuelController extends ControllerBase {
     private final SessionManager sessionManager;
     private final DuelService duelService;
     private final UserService userService;
-    private final FighterService fighterService;
 
     public DuelController(SessionManager sessionManager,
                           DuelService duelService,
-                          UserService userService,
-                          FighterService fighterService) {
+                          UserService userService) {
         super("/duel", HttpMethod.GET);
         this.sessionManager = sessionManager;
         this.duelService = duelService;
         this.userService = userService;
-        this.fighterService = fighterService;
     }
-
 
     @Override
     public Response handle(Request request) {
@@ -40,6 +35,7 @@ public class DuelController extends ControllerBase {
         if (uuid == null) {
             return new RedirectResponse("/login");
         }
+
         Long userId = sessionManager.getValueFromSession(uuid, USER_ID, Long.class);
         if (userId == null) {
             return new RedirectResponse("/login");
@@ -50,7 +46,7 @@ public class DuelController extends ControllerBase {
             return new RedirectResponse("/office");
         }
 
-        return new DuelResponse(duel,
+        return new DuelResponse(duelService.getSecondsBeforeDuelStart(duel),
                 userId,
                 userService.findUser(userId).getLogin(),
                 duel.getYourFighter(userId).getHealth(),

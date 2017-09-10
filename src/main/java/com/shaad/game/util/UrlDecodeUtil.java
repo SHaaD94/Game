@@ -9,6 +9,9 @@ import java.net.URLDecoder;
 public class UrlDecodeUtil {
     public static String decode(String string) {
         try {
+            if (string == null){
+                return null;
+            }
             return URLDecoder.decode(string, "UTF-8");
         } catch (Exception e) {
             throw new RuntimeException(e);

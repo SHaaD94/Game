@@ -46,7 +46,7 @@ public class App {
                         new UserOfficeController(sessionManager, userService, fighterService),
 
                         new FindOpponentController(sessionManager, duelService),
-                        new DuelController(sessionManager, duelService, userService, fighterService),
+                        new DuelController(sessionManager, duelService, userService),
                         new AttackActionController(sessionManager, duelService),
                         new LastDuelController(sessionManager, duelRepository, userService)
                 )

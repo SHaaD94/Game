@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -16,15 +17,17 @@ public class Duel {
     private final long firstUserId;
     private final long secondUserId;
     private final List<String> logLines = new ArrayList<>();
+    private final Date creationDate;
     private DuelStatus status;
 
     private FighterState fighter1;
     private FighterState fighter2;
 
-    public Duel(long id, long firstUserId, long secondUserId, DuelStatus status) {
+    public Duel(long id, long firstUserId, long secondUserId, Date creationDate, DuelStatus status) {
         this.id = id;
         this.firstUserId = firstUserId;
         this.secondUserId = secondUserId;
+        this.creationDate = creationDate;
         this.status = status;
     }
 

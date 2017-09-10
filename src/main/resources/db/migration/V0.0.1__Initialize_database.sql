@@ -25,7 +25,7 @@ CREATE TABLE duels (
         first_user_id BIGINT(50) NOT NULL,
         second_user_id BIGINT(50) NOT NULL,
         status CHAR(20),
-        create_date TIMESTAMP,
+        create_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         log TEXT,
         PRIMARY KEY(id),
         INDEX first_user_index (first_user_id),

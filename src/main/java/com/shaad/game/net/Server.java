@@ -4,6 +4,7 @@ package com.shaad.game.net;
 import com.shaad.game.controller.ControllerHolder;
 import com.shaad.game.net.decoder.ResponseDecoder;
 import com.shaad.game.net.response.Response;
+import com.shaad.game.net.response.errors.BadRequestResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -47,7 +48,12 @@ public class Server implements AutoCloseable {
 
                         log.info("Handling response: {}", request.toString());
 
-                        Response response = controllerHolder.handleRequest(request);
+                        Response response;
+                        try {
+                            response = controllerHolder.handleRequest(request);
+                        } catch (Exception e) {
+                            response = new BadRequestResponse(e.getMessage());
+                        }
 
                         PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                         out.println(responseDecoder.decode(response));
@@ -91,7 +97,7 @@ public class Server implements AutoCloseable {
         while (!header.isEmpty()) {
             headers.add(header);
             //if request contains body, header content length will appear
-            if (header.contains("Content-Length")) {
+            if (header.matches("[C|c]ontent-[L|l]ength:.*")) {
                 contentLength = Integer.parseInt(header.split(": ")[1]);
             }
             header = in.readLine();

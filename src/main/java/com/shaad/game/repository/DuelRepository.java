@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.Date;
 
 public class DuelRepository extends Repository {
     public Duel getLastFinishedDuel(long userId) {
@@ -28,8 +29,9 @@ public class DuelRepository extends Repository {
                 long id = resultSet.getLong("id");
                 long firstUserId = resultSet.getLong("first_user_id");
                 long secondUserId = resultSet.getLong("second_user_id");
+                Date createDate = new Date(resultSet.getTimestamp("create_date").getTime());
                 DuelStatus status = DuelStatus.valueOf(resultSet.getString("status"));
-                Duel duel = new Duel(id, userId, firstUserId != userId ? firstUserId : secondUserId, status);
+                Duel duel = new Duel(id, userId, firstUserId != userId ? firstUserId : secondUserId, createDate, status);
                 Arrays.stream(resultSet.getString("log").split("\n")).forEachOrdered(duel::addLogLine);
                 return duel;
             }
@@ -41,8 +43,8 @@ public class DuelRepository extends Repository {
     public Duel createDuel(long firstUserId, long secondUserId) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
-                     "INSERT INTO duels (first_user_id, second_user_id, status, create_date) " +
-                             "values(?,?,?,now())", Statement.RETURN_GENERATED_KEYS)) {
+                     "INSERT INTO duels (first_user_id, second_user_id, status) " +
+                             "values(?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setLong(1, firstUserId);
             preparedStatement.setLong(2, secondUserId);
@@ -51,20 +53,21 @@ public class DuelRepository extends Repository {
             try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
                 resultSet.next();
                 long id = resultSet.getLong(1);
-                return new Duel(id, firstUserId, secondUserId, DuelStatus.PENDING);
+                //fixme: hack around mysql returning generated date
+                return new Duel(id, firstUserId, secondUserId, new Date(), DuelStatus.PENDING);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void updateDuelStatus(long duelId, DuelStatus status) {
+    public void updateDuelStatus(Duel duel) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
                      "UPDATE duels set status = ? where id = ?")) {
 
-            preparedStatement.setString(1, status.toString());
-            preparedStatement.setLong(2, duelId);
+            preparedStatement.setString(1, duel.getStatus().toString());
+            preparedStatement.setLong(2, duel.getId());
             preparedStatement.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);

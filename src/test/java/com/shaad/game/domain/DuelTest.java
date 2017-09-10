@@ -3,10 +3,12 @@ package com.shaad.game.domain;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Date;
+
 public class DuelTest {
     @Test
     public void shouldReturnTrueResults() {
-        Duel duel = new Duel(1, 1, 2, DuelStatus.FINISHED);
+        Duel duel = new Duel(1, 1, 2, new Date(), DuelStatus.FINISHED);
 
         FighterState firstFighterState = new FighterState(1, 1);
         FighterState secondFighterState = new FighterState(2, 2);

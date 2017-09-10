@@ -15,14 +15,17 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class DuelService {
-    private static final long OPPONENT_SCAN_PERIOD = 5 * 1000;
+    private static final long DUEL_SCAN_PERIOD = 5 * 1000;
+    private static final long PENDING_DUEL_TIMEOUT = 60 * 1000;
     private static final String ATTACK_LOG_TEMPLATE = "%%{0}%% attacked %%{1}%% for {2} damage";
     private static final String KILLED_LOG_TEMPLATE = "%%{0}%% killed %%{1}%%";
     private final DuelRepository duelRepository;
     private final FighterService fighterService;
     private final Queue<Long> fighterQueue = new ConcurrentLinkedQueue<>();
-    private final ScheduledExecutorService scheduledService = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduledService =
+            Executors.newScheduledThreadPool(1);
 
+    private final Queue<Duel> pendingDuels = new ConcurrentLinkedQueue<>();
     private final Map<Duel, Lock> duel2Lock = new ConcurrentHashMap<>();
     private final Map<Long, Duel> userId2Duel = new ConcurrentHashMap<>();
 
@@ -30,6 +33,7 @@ public class DuelService {
         this.duelRepository = duelRepository;
         this.fighterService = fighterService;
 
+        //start opponent finding loop
         scheduledService.scheduleAtFixedRate(() -> {
             log.debug("Searching for an opponents");
 
@@ -44,8 +48,28 @@ public class DuelService {
                 duel.setFighter2(new FighterState(this.fighterService.findFighter(secondUser)));
                 userId2Duel.put(firstUser, duel);
                 userId2Duel.put(secondUser, duel);
+                pendingDuels.add(duel);
             }
-        }, OPPONENT_SCAN_PERIOD, OPPONENT_SCAN_PERIOD, TimeUnit.MILLISECONDS);
+        }, DUEL_SCAN_PERIOD, DUEL_SCAN_PERIOD, TimeUnit.MILLISECONDS);
+
+        //start duel starting loop
+        scheduledService.scheduleAtFixedRate(() -> {
+            boolean shouldCheckNext = true;
+            while (shouldCheckNext) {
+                Duel pendingDuel = pendingDuels.peek();
+
+                if (pendingDuel != null &&
+                        pendingDuel.getCreationDate().getTime() + PENDING_DUEL_TIMEOUT < System.currentTimeMillis()) {
+                    pendingDuels.poll();
+                    log.info("Change status to IN_PROGRESS in duel {}", pendingDuel.getId());
+                    pendingDuel.setStatus(DuelStatus.IN_PROGRESS);
+                    duelRepository.updateDuelStatus(pendingDuel);
+                    shouldCheckNext = true;
+                } else {
+                    shouldCheckNext = false;
+                }
+            }
+        }, DUEL_SCAN_PERIOD, DUEL_SCAN_PERIOD, TimeUnit.MILLISECONDS);
     }
 
     public void registerInQueue(Long userId) {
@@ -101,5 +125,10 @@ public class DuelService {
         } finally {
             lock.unlock();
         }
+    }
+
+    public int getSecondsBeforeDuelStart(Duel duel) {
+        return Long.valueOf(((duel.getCreationDate().getTime() + PENDING_DUEL_TIMEOUT
+                - System.currentTimeMillis()) / 1000)).intValue();
     }
 }

@@ -54,7 +54,7 @@ public class SessionManager {
     }
 
     public UUID parseSessionId(Request request) {
-        Optional<String> sessionIdCookie = request.getHeaders().stream().filter(x -> x.startsWith("Cookie")).filter(x -> x.contains(SESSION_ID))
+        Optional<String> sessionIdCookie = request.getHeaders().stream().filter(x -> x.matches("[C|c]ookie.*")).filter(x -> x.contains(SESSION_ID))
                 .findFirst();
 
         if (!sessionIdCookie.isPresent()) {
@@ -96,5 +96,4 @@ public class SessionManager {
             this.updateDate = System.currentTimeMillis();
         }
     }
-
 }
