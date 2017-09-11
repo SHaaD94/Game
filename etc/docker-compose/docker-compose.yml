@@ -1,0 +1,30 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0.2
+    network_mode: "host"
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_ROOT_USER: "root"
+      MYSQL_DATABASE: "game"
+    ports:
+      - 3306:3306
+    restart: always
+
+  game:
+    image: game/game:1.0-SNAPSHOT
+    ports:
+      - 8080:8080
+    network_mode: "host"
+    restart: always
+    depends_on:
+      - mysql
+    command: >
+      /bin/bash -c "
+        while ! nc -z mysql 3306;
+        do
+          echo sleeping;
+          sleep 1;
+        done;
+        echo Connected!;
+      "

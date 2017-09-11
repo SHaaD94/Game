@@ -4,7 +4,8 @@
     <title>Best game ever</title>
 </head>
 <body>
-<h1>Seconds until start %%seconds%%</h1>
+<h1 id="seconds_title">Seconds until start <span id="seconds_until_start">%%seconds%%</span></h1>
+<h1 id="fight_title">Fight!</h1>
 
 <div id="duel">
     <div id="first_fighter">
@@ -23,11 +24,11 @@
 </div>
 
 <form action="/attackAction" method="post">
-    <button>Attack</button>
+    <button id="attack_button">Attack</button>
 </form>
 
-<p>Duel logs:</p>
-<p>%%logs%%</p>
+<p id="logs_title"">Duel logs:</p>
+<p id="logs_content">%%logs%%</p>
 
 <style>
     #first_fighter{
@@ -41,44 +42,21 @@
         padding: 1em;
         overflow: hidden;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </style>
+
+<script>
+    seconds_until_start_element = document.getElementById('seconds_until_start').textContent
+    seconds = parseInt(seconds_until_start_element)
+    if (seconds > 0){
+        document.getElementById('attack_button').hidden = true
+        document.getElementById('logs_title').hidden = true
+        document.getElementById('fight_title').hidden = true
+        document.getElementById('logs_content').hidden = true
+    } else {
+        document.getElementById('seconds_title').hidden = true
+    }
+
+</script>
 
 </body>
 </html>
