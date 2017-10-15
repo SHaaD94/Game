@@ -1,5 +1,4 @@
 FROM frolvlad/alpine-oraclejdk8:slim
-MAINTAINER 2GIS World Developers <2gisworld.dev@2Gis.ru>
 
 ADD *.jar app.jar
 
